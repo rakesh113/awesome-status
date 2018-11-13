@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:english_words/english_words.dart';
 
 void main() => runApp(MyApp());
 
@@ -6,21 +7,94 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+        title: 'Welcome Flutter',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          primaryColor: Colors.white,
+
+        ),
+        home: RandomWords(),
     );
+  }
+}
+
+class RandomWords extends StatefulWidget {
+  @override
+  RandomWordState createState() => new RandomWordState();
+
+}
+
+class RandomWordState extends State<RandomWords> {
+  final _suggestions = <WordPair>[];
+  final _biggerFont= const TextStyle(fontSize: 20.0);
+  final _saved = new Map<WordPair,bool>();
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Name generator"),
+        actions: <Widget>[
+          new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved)
+        ],
+      ),
+      body: _buildSuggestions(_suggestions,false),
+    );
+  }
+
+  Widget _buildSuggestions(List<WordPair> wordPairs, bool saved){
+    
+    return ListView.builder(
+        itemBuilder: (context, i){
+          if(i.isOdd) return Divider(height: 1.0,color: Colors.black,);
+          final index=i~/2;
+          if(index>=wordPairs.length && !saved){
+            wordPairs.addAll(generateWordPairs().take(10));
+          }
+          if(index<wordPairs.length) return _buildRow(wordPairs[index]);
+          else return null;
+        });
+  }
+
+  Widget _buildRow(WordPair suggestion) {
+    return new ListTile(
+      title: Text(
+        suggestion.asPascalCase,
+        style: _biggerFont,
+      ),
+      trailing: new Icon(
+          _saved.containsKey(suggestion) ? Icons.favorite: Icons.favorite_border,
+          color: _saved.containsKey(suggestion) ? Colors.red:null,
+      ),
+      onTap: (){
+       setState(() {
+         if(_saved.containsKey(suggestion))
+           _saved.remove(suggestion);
+         else _saved[suggestion]= true;
+       });
+      },
+    );
+  }
+
+  void _pushSaved() {
+    Navigator.of(context).push(
+      new MaterialPageRoute<void>(
+          builder: (BuildContext context){
+            return Scaffold(
+              appBar: AppBar(
+                title: Text("Saved Names"),
+                actions: <Widget>[
+                  new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved)
+                ],
+              ),
+              body: _buildSuggestions(_saved.keys.toList(),true),
+            );
+      })
+    );
+        
   }
 }
 
@@ -52,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      _counter += 2;
     });
   }
 
@@ -90,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              'You have clicke the button this many times:',
             ),
             Text(
               '$_counter',
